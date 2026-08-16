@@ -1,3 +1,22 @@
+# Personal notes
+TODO.md
+
+# C#
+bin/
+obj/
+
+# Azure Functions ローカル設定(マシン固有・シークレットを含みうるためコミットしない)
+local.settings.json
+
+# Azurite (ローカル Table/Blob/Queue Storage エミュレータ) の実行時生成物
+AzuriteConfig
+__azurite_db_*__.json
+__blobstorage__/
+__queuestorage__/
+
+# スクラッチ・一時ファイル置き場
+/tmp/
+
 # Miscellaneous
 *.class
 *.lock
@@ -6,6 +25,9 @@
 *.swp
 .buildlog/
 .history
+
+# last_done_app はアプリ(パッケージではない)なので pubspec.lock は再現性のためコミットする
+!frontend/last_done_app/pubspec.lock
 
 
 
