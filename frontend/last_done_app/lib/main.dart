@@ -98,7 +98,7 @@ class _SetupPageState extends State<SetupPage> {
 
     setState(() => _saving = true);
     final contextData = UserContext(
-      familyCode: _familyCode.text.trim().toUpperCase(),
+      familyCode: _familyCode.text.trim(),
       userName: _userName.text.trim(),
     );
     await LocalAuthStore.save(contextData);

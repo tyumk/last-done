@@ -5,7 +5,7 @@ param location string = resourceGroup().location
 
 @description('Prefix for resource names')
 @minLength(3)
-@maxLength(11)
+@maxLength(8)
 param namePrefix string
 
 @description('Family code header name')
@@ -47,6 +47,16 @@ resource familiesTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2
   name: '${storage.name}/default/Families'
 }
 
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storage
+  name: 'default'
+}
+
+resource deploymentContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: blobService
+  name: 'app-package'
+}
+
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
@@ -79,14 +89,34 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   properties: {
     serverFarmId: flexPlan.id
     httpsOnly: true
+    functionAppConfig: {
+      deployment: {
+        storage: {
+          type: 'blobContainer'
+          value: '${storage.properties.primaryEndpoints.blob}${deploymentContainer.name}'
+          authentication: {
+            type: 'StorageAccountConnectionString'
+            storageAccountConnectionStringName: 'DEPLOYMENT_STORAGE_CONNECTION_STRING'
+          }
+        }
+      }
+      scaleAndConcurrency: {
+        maximumInstanceCount: 40
+        instanceMemoryMB: 2048
+      }
+      runtime: {
+        name: 'dotnet-isolated'
+        version: '10.0'
+      }
+    }
     siteConfig: {
       appSettings: [
         {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'dotnet-isolated'
+          name: 'AzureWebJobsStorage'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
-          name: 'AzureWebJobsStorage'
+          name: 'DEPLOYMENT_STORAGE_CONNECTION_STRING'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
         }
         {
@@ -124,7 +154,6 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
       ]
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
-      linuxFxVersion: 'DOTNET-ISOLATED|8.0'
     }
   }
 }

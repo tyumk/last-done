@@ -97,4 +97,10 @@ az deployment group create \
 
 - `PartitionKey`: `FAMILY`
 - `RowKey`: 家族コード (6桁英数字)
-- `IsActive`: `true`
+- `IsActive`: `true`(真偽値。`Edm.Boolean`型で登録する必要がある。詳細は `scripts/register-family.ps1` 参照)
+
+登録には `scripts/register-family.ps1` が使える:
+
+```powershell
+./scripts/register-family.ps1 -ResourceGroupName <リソースグループ名> -FamilyCode <6桁英数字>
+```
